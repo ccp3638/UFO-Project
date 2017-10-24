@@ -1,0 +1,106 @@
+<head>
+<title>UFO Locator</title>
+<meta charset="UTF-8">
+</head>
+<body>
+	<input type="text" id="searchText" placeholder="Zip Code">
+	<button id="send">Search</button>
+	<button id="all">View 1,000</button>
+	<div id="map" style="width:80%;height:80%;margin-top: 30px;"></div>
+	<script>
+		var map;
+		var markers = []; //store markers to be able to remove them
+		function initMap(){
+		  //set up the map
+		  map = new google.maps.Map(document.getElementById('map'), {
+		    zoom: 3,
+		    center: new google.maps.LatLng(37, -95),
+		    mapTypeId: 'terrain'
+		  });
+		  var script = document.createElement('script');
+		  document.getElementsByTagName('head')[0].appendChild(script);
+
+		  //api call to get all markers
+		  apiCall("http://localhost:16789/all");
+		}
+
+		document.getElementById("send").onclick = function(){
+			var zipText = document.getElementById("searchText").value;
+			var url = "http://localhost:16789/search?zip=" +zipText;
+			apiCall(url);
+
+			//zoom map in on the zip code
+			var zoomMarker = markers[markers.length-1];
+			var lat = zoomMarker.getPosition().lat();
+			var lng = zoomMarker.getPosition().lng();
+			console.log(lat + "," + lng);
+			//map.setZoom(9);
+			map.panTo(new google.maps.LatLng(lat, lng));
+		};
+
+		document.getElementById("all").onclick = function(){
+			apiCall("http://localhost:16789/all");
+			map.setZoom(3);
+		}
+
+		function apiCall(url){
+			var xhttp = new XMLHttpRequest();
+			xhttp.open("GET", url, true);
+		  xhttp.setRequestHeader("Content-type", "application/json");
+		    xhttp.onreadystatechange = function() {
+		    if (xhttp.readyState === 4) {
+		      var apiResponse = JSON.parse(xhttp.response); //Outputs a DOMString by default
+		      //add data to the map
+		      addToMap(apiResponse);
+		    }// end readyState if
+		  } // end readyState function
+		  xhttp.send();
+		}
+
+		function addToMap(jsonList){
+			//clear old markers
+			for (var i = 0; i < markers.length; i++) {
+				markers[i].setMap(null);
+			}
+			markers = [];
+
+		  for(var i = 0; i < jsonList.length; i++){
+		    var curr = jsonList[i];
+		    var coord = new google.maps.LatLng(curr.latitude, curr.longitude);
+
+		    var icon = {
+			    url: "assets/marker1.png", // url
+			    scaledSize: new google.maps.Size(40, 64), // scaled size
+			    origin: new google.maps.Point(0,0), // origin
+			    anchor: new google.maps.Point(0, 0) // anchor
+				};
+
+		    //create marker
+		    var marker = new google.maps.Marker({
+		      position: coord,
+		      map:map,
+		      icon: icon,
+		      optimized: false
+		    });
+
+		    //infowindow content
+		    marker.content = '<div id="content">'+
+		    '<div id="siteNotice">' +
+		    '</div><h4 id="firstHeading" class="firstHeading">'+ curr.city +'</h4><p><b>' + curr.Date_time + '</b> Duration: ' + curr.described_duration_of_encounter + '<br/>' + curr.description + "</p></div></div>";
+		    
+		    //clickable information text window
+		    var infowindow = new google.maps.InfoWindow();
+		    
+		    //adds marker
+		    marker.addListener('click', function(){
+		      infowindow.setContent(this.content);
+		      infowindow.open(map, this);
+		    });
+		    markers.push(marker);
+		  }//end for
+		}
+	</script>
+	<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDdi6fIlkH4c15Ls7RxGUAGTSBws-RVK8E&libraries=places&callback=initMap">
+    </script>
+</body>
