@@ -21,7 +21,7 @@
 		  document.getElementsByTagName('head')[0].appendChild(script);
 
 		  //api call to get all markers
-		  apiCall("http://localhost:16789/all");
+		  apiCall("/all");
 		}
 
 		document.getElementById("send").onclick = function(){
@@ -45,6 +45,7 @@
 
 		function apiCall(urlAppend){
 			var url = "http://18.217.140.244:16789" + urlAppend;
+			console.log(url);
 			var xhttp = new XMLHttpRequest();
 			xhttp.open("GET", url, true);
 		  xhttp.setRequestHeader("Content-type", "application/json");
