@@ -26,7 +26,7 @@
 
 		document.getElementById("send").onclick = function(){
 			var zipText = document.getElementById("searchText").value;
-			var url = "http://localhost:16789/search?zip=" +zipText;
+			var url = "/search?zip=" +zipText;
 			apiCall(url);
 
 			//zoom map in on the zip code
@@ -39,11 +39,12 @@
 		};
 
 		document.getElementById("all").onclick = function(){
-			apiCall("http://localhost:16789/all");
+			apiCall("/all");
 			map.setZoom(3);
 		}
 
-		function apiCall(url){
+		function apiCall(urlAppend){
+			var url = "http://18.217.140.244:16789" + urlAppend;
 			var xhttp = new XMLHttpRequest();
 			xhttp.open("GET", url, true);
 		  xhttp.setRequestHeader("Content-type", "application/json");
